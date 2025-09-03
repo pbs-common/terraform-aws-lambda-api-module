@@ -1,5 +1,5 @@
 module "ecr" {
-  source = "github.com/pbs-common/terraform-aws-ecr-module?ref=0.3.0"
+  source = "github.com/pbs/terraform-aws-ecr-module?ref=0.3.0"
 
   // Just to make testing easier
   image_tag_mutability = "MUTABLE"
