@@ -7,13 +7,64 @@ import (
 	"os"
 	"testing"
 	"time"
+	"bytes"
+	"context"
+	"os/exec"
 
 	"github.com/gruntwork-io/terratest/modules/docker"
 	httpHelper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/assert"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/ecr"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
+
+func ecrLogin() {
+	ctx := context.Background()
+
+	// Load AWS config
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-east-1"))
+	if err != nil {
+		panic(err)
+	}
+
+	// Get AWS account ID
+	stsClient := sts.NewFromConfig(cfg)
+	id, err := stsClient.GetCallerIdentity(ctx, &sts.GetCallerIdentityInput{})
+	if err != nil {
+		panic(err)
+	}
+	accountID := *id.Account
+
+	// Get ECR login password
+	ecrClient := ecr.NewFromConfig(cfg)
+	auth, err := ecrClient.GetAuthorizationToken(ctx, &ecr.GetAuthorizationTokenInput{})
+	if err != nil {
+		panic(err)
+	}
+	password := ""
+	if len(auth.AuthorizationData) > 0 {
+		password = *auth.AuthorizationData[0].AuthorizationToken
+	}
+
+	// Decode base64 password
+	decoded, err := exec.Command("bash", "-c", fmt.Sprintf("echo %s | base64 -d | cut -d: -f2", password)).Output()
+	if err != nil {
+		panic(err)
+	}
+
+	// Docker login
+	registry := fmt.Sprintf("%s.dkr.ecr.us-east-1.amazonaws.com", accountID)
+	cmd := exec.Command("docker", "login", "--username", "AWS", "--password-stdin", registry)
+	cmd.Stdin = bytes.NewReader(decoded)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		panic(string(out))
+	}
+	fmt.Println(string(out))
+}
 
 func testLambdaAPI(t *testing.T, variant string) {
 	t.Parallel()
@@ -29,6 +80,7 @@ func testLambdaAPI(t *testing.T, variant string) {
 	terraformOptions := &terraform.Options{
 		TerraformDir: terraformDir,
 		LockTimeout:  "5m",
+		Upgrade:      true,
 	}
 
 	defer terraform.Destroy(t, terraformOptions)
@@ -47,6 +99,7 @@ func testLambdaAPI(t *testing.T, variant string) {
 		ecrTargetTerraformOptions := &terraform.Options{
 			TerraformDir: terraformDir,
 			LockTimeout:  "5m",
+			Upgrade:      true,
 			Targets:      []string{"module.ecr"},
 		}
 
@@ -59,7 +112,7 @@ func testLambdaAPI(t *testing.T, variant string) {
 			Tags:          []string{tag},
 			Architectures: []string{"linux/arm64"},
 			OtherOptions: []string{
-				"--provenance", "false",
+				"--provenance", "false", "--load",
 			},
 		}
 
@@ -111,6 +164,7 @@ func testLambdaAPI(t *testing.T, variant string) {
 
 		dockerResponse = string(body)
 
+        ecrLogin()
 		docker.Push(t, logger, tag)
 	}
 
