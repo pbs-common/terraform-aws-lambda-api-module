@@ -1,5 +1,5 @@
 module "lambda" {
-  source = "github.com/pbs/terraform-aws-lambda-module?ref=1.3.38"
+  source = "github.com/pbs/terraform-aws-lambda-module?ref=2.0.0"
 
   # Required
   handler   = var.handler
@@ -44,5 +44,6 @@ module "lambda" {
   environment  = var.environment
   product      = var.product
   repo         = var.repo
+  owner        = var.owner
   organization = var.organization
 }

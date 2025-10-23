@@ -1,5 +1,5 @@
 module "ecr" {
-  source = "github.com/pbs-common/terraform-aws-ecr-module?ref=0.3.29"
+  source = "github.com/pbs-common/terraform-aws-ecr-module?ref=1.0.0"
 
   // Just to make testing easier
   image_tag_mutability = "MUTABLE"
@@ -9,6 +9,7 @@ module "ecr" {
   environment  = var.environment
   product      = var.product
   repo         = var.repo
+  owner        = var.owner
   organization = var.organization
 }
 
@@ -25,5 +26,6 @@ module "lambda_api" {
   environment  = var.environment
   product      = var.product
   repo         = var.repo
+  owner        = var.owner
   organization = var.organization
 }

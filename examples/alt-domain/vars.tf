@@ -6,4 +6,5 @@ variable "primary_hosted_zone" {
 variable "alternate_domain_name" {
   type        = string
   description = "Alternate domain name for this API. Populate `TF_VAR_alternate_domain_name` before running any tests to have this value populated."
+  default     = "alt-domain.iac.pbs.org"
 }
