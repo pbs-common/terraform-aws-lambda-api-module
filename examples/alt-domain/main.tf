@@ -3,7 +3,7 @@ module "lambda_api" {
 
   handler  = "bootstrap"
   filename = "../artifacts/handler.zip"
-  runtime  = "provided.al2"
+  runtime  = "provided.al2023"
 
   primary_hosted_zone = var.primary_hosted_zone
 

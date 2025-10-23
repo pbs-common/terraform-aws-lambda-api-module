@@ -4,5 +4,3 @@ target
 CHANGELOG.md
 *.tfstate
 *.tfstate.backup
-examples/artifacts/*
-!examples/artifacts/.gitignore
