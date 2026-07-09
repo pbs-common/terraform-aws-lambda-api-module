@@ -1,13 +1,13 @@
 module github.com/pbs/terraform-aws-lambda-api-module
 
-go 1.26
+go 1.26.0
 
 require (
 	github.com/aws/aws-sdk-go v1.55.8
 	github.com/aws/aws-sdk-go-v2/config v1.32.29
 	github.com/aws/aws-sdk-go-v2/service/ecr v1.58.3
 	github.com/aws/aws-sdk-go-v2/service/sts v1.44.0
-	github.com/gruntwork-io/terratest v1.0.0
+	github.com/gruntwork-io/terratest v1.0.1
 	github.com/stretchr/testify v1.11.1
 )
 
