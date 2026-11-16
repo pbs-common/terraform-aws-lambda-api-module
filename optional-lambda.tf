@@ -76,30 +76,6 @@ variable "lambda_insights_extension_account_number" {
   type        = string
 }
 
-variable "parameters_and_secrets_extension_version" {
-  description = "Lambda layer version for the AWS-Parameters-and-Secrets-Lambda-Extension layer"
-  default     = null
-  type        = number
-}
-
-variable "parameters_and_secrets_extension_account_number" {
-  description = "Account number for the AWS-Parameters-and-Secrets-Lambda-Extension layer"
-  default     = "177933569100"
-  type        = string
-}
-
-variable "app_config_extension_version" {
-  description = "Lambda layer version for the AWS-AppConfig-Extension layer"
-  default     = null
-  type        = number
-}
-
-variable "app_config_extension_account_number" {
-  description = "Account number for the AWS-AppConfig-Extension layer"
-  default     = "027255383542"
-  type        = string
-}
-
 variable "tracing_config_mode" {
   description = "Tracing config mode for X-Ray integration on Lambda"
   default     = "Active"
