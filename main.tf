@@ -15,7 +15,7 @@ resource "aws_apigatewayv2_api" "api" {
     }
   }
 
-  tags = local.tags
+  tags = merge(local.tags, local.edge_exception_tags)
 }
 
 resource "aws_apigatewayv2_domain_name" "domain_name" {
@@ -98,4 +98,37 @@ resource "aws_apigatewayv2_route" "route" {
   api_id    = aws_apigatewayv2_api.api.id
   route_key = var.route_key
   target    = "integrations/${aws_apigatewayv2_integration.integration.id}"
+
+  authorization_type   = var.authorization_type
+  authorizer_id        = one(concat(aws_apigatewayv2_authorizer.jwt[*].id, aws_apigatewayv2_authorizer.lambda[*].id))
+  authorization_scopes = var.authorization_type == "JWT" ? var.jwt_authorizer.authorization_scopes : null
+}
+
+resource "aws_apigatewayv2_authorizer" "jwt" {
+  count = var.authorization_type == "JWT" ? 1 : 0
+
+  api_id           = aws_apigatewayv2_api.api.id
+  authorizer_type  = "JWT"
+  name             = "${local.name}-jwt"
+  identity_sources = var.jwt_authorizer.identity_sources
+
+  jwt_configuration {
+    issuer   = var.jwt_authorizer.issuer
+    audience = var.jwt_authorizer.audience
+  }
+}
+
+resource "aws_apigatewayv2_authorizer" "lambda" {
+  count = var.authorization_type == "CUSTOM" ? 1 : 0
+
+  api_id           = aws_apigatewayv2_api.api.id
+  authorizer_type  = "REQUEST"
+  name             = "${local.name}-lambda"
+  authorizer_uri   = "arn:${split(":", var.lambda_authorizer.function_arn)[1]}:apigateway:${split(":", var.lambda_authorizer.function_arn)[3]}:lambda:path/2015-03-31/functions/${var.lambda_authorizer.function_arn}/invocations"
+  identity_sources = var.lambda_authorizer.identity_sources
+
+  # Supported only for HTTP APIs.
+  authorizer_payload_format_version = local.is_http_api ? var.lambda_authorizer.payload_format_version : null
+  enable_simple_responses           = local.is_http_api ? var.lambda_authorizer.enable_simple_responses : null
+  authorizer_result_ttl_in_seconds  = local.is_http_api ? var.lambda_authorizer.result_ttl_in_seconds : null
 }
