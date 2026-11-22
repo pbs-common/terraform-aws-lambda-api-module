@@ -6,6 +6,9 @@ locals {
   certificate_arn              = var.acm_arn != null ? var.acm_arn : data.aws_acm_certificate.wildcard[0].arn
   cors_configuration           = var.cors_configuration != null ? toset([var.cors_configuration]) : toset([])
   create_alternate_domain_name = var.alternate_domain_name != null
+  is_http_api                  = var.protocol_type == "HTTP"
+
+  edge_exception_tags = var.edge_exception == null ? {} : { "pbs:edge:exception" = var.edge_exception }
 
   creator = "terraform"
 
